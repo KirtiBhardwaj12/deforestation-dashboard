@@ -46,31 +46,33 @@ col3.metric("Avg Temperature", round(df["Average_Temperature_C"].mean(), 2))
 col4.metric("Avg Risk Score", round(results_df["Risk_Score"].mean(), 2))
 
 # -------------------------------
-# NDVI + RISK (SIDE BY SIDE)
+# NDVI + RISK
 # -------------------------------
 col5, col6 = st.columns(2)
 
 with col5:
     st.subheader("📈 NDVI Trend")
-    fig_ndvi = px.line(
-        df,
-        x="Year",
-        y="NDVI",
-        color="Regions",
-        markers=True
-    )
+    fig_ndvi = px.line(df, x="Year", y="NDVI", color="Regions", markers=True)
     st.plotly_chart(fig_ndvi, use_container_width=True)
+
+    st.markdown("""
+    **Insight:**
+    - NDVI indicates vegetation health  
+    - Increasing trend = healthy forest  
+    - Decreasing trend = possible deforestation  
+    """)
 
 with col6:
     st.subheader("🔥 Risk Trend")
-    fig_risk = px.line(
-        results_df,
-        x="Year",
-        y="Risk_Score",
-        color="Regions",
-        markers=True
-    )
+    fig_risk = px.line(results_df, x="Year", y="Risk_Score", color="Regions", markers=True)
     st.plotly_chart(fig_risk, use_container_width=True)
+
+    st.markdown("""
+    **Insight:**
+    - Risk score identifies deforestation-prone regions  
+    - Higher trend = increasing environmental risk  
+    - Sudden spikes = rapid forest degradation  
+    """)
 
 # -------------------------------
 # CORRELATION + REGION RISK
@@ -79,62 +81,50 @@ col7, col8 = st.columns(2)
 
 with col7:
     st.subheader("🌧️ Rainfall vs NDVI")
-    fig_corr = px.scatter(
-        df,
-        x="Rainfall_mm",
-        y="NDVI",
-        color="Regions"
-    )
+    fig_corr = px.scatter(df, x="Rainfall_mm", y="NDVI", color="Regions")
     st.plotly_chart(fig_corr, use_container_width=True)
+
+    st.markdown("""
+    **Insight:**
+    - Higher rainfall improves vegetation growth  
+    - Positive correlation observed  
+    - Low rainfall areas show reduced NDVI  
+    """)
 
 with col8:
     st.subheader("🌍 Region-wise Risk")
     region_risk = results_df.groupby("Regions")["Risk_Score"].mean().reset_index()
 
-    fig_bar = px.bar(
-        region_risk,
-        x="Regions",
-        y="Risk_Score",
-        color="Risk_Score"
-    )
+    fig_bar = px.bar(region_risk, x="Regions", y="Risk_Score", color="Risk_Score")
     st.plotly_chart(fig_bar, use_container_width=True)
+
+    st.markdown("""
+    **Insight:**
+    - Highlights high-risk regions  
+    - Helps identify deforestation hotspots  
+    - Useful for conservation planning  
+    """)
 
 # -------------------------------
 # RISK DISTRIBUTION
 # -------------------------------
 st.subheader("📉 Risk Distribution")
 
-fig_hist = px.histogram(
-    results_df,
-    x="Risk_Score",
-    nbins=20
-)
-
+fig_hist = px.histogram(results_df, x="Risk_Score", nbins=20)
 st.plotly_chart(fig_hist, use_container_width=True)
 
-# -------------------------------
-# INSIGHTS SECTION (VERY IMPRESSIVE)
-# -------------------------------
-st.subheader("💡 Key Insights")
-
 st.markdown("""
-- Regions with decreasing NDVI indicate possible deforestation  
-- Higher rainfall generally improves vegetation health  
-- High risk scores highlight areas needing conservation attention  
-- Machine learning helps predict future vegetation conditions  
+**Insight:**
+- Shows spread of deforestation risk  
+- High-risk clusters indicate critical zones  
+- Helps understand overall risk distribution  
 """)
 
 # -------------------------------
-# FOOTER
-# -------------------------------
-st.markdown("---")
-st.markdown("Developed using Python, Machine Learning, and Streamlit 🌍")
-# -------------------------------
-# MAP VISUALIZATION (NEW)
+# MAP VISUALIZATION
 # -------------------------------
 st.subheader("🌍 Deforestation Risk Map")
 
-# Add approximate coordinates for regions
 region_coords = {
     "Aravalli": [27.0, 75.0],
     "Central Forest": [23.0, 80.0],
@@ -145,17 +135,14 @@ region_coords = {
     "Western Himalayas": [32.0, 77.0]
 }
 
-# Convert to dataframe
 coords_df = pd.DataFrame([
     {"Regions": k, "lat": v[0], "lon": v[1]}
     for k, v in region_coords.items()
 ])
 
-# Merge with risk data
 map_df = results_df.groupby("Regions")["Risk_Score"].mean().reset_index()
 map_df = map_df.merge(coords_df, on="Regions")
 
-# Plot map
 fig_map = px.scatter_geo(
     map_df,
     lat="lat",
@@ -163,15 +150,22 @@ fig_map = px.scatter_geo(
     size="Risk_Score",
     color="Risk_Score",
     hover_name="Regions",
-    title="Deforestation Risk by Region",
     projection="natural earth"
 )
 
-fig_map.update_geos(
-    scope="asia",
-    showcountries=True,
-    showland=True,
-    landcolor="lightgray"
-)
+fig_map.update_geos(scope="asia", showcountries=True, showland=True)
 
 st.plotly_chart(fig_map, use_container_width=True)
+
+st.markdown("""
+**Insight:**
+- Shows geographic distribution of risk  
+- Larger bubbles = higher deforestation risk  
+- Helps identify spatial hotspots  
+""")
+
+# -------------------------------
+# FOOTER
+# -------------------------------
+st.markdown("---")
+st.markdown("Developed using Python, Machine Learning, and Streamlit 🌍")
